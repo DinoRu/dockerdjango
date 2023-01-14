@@ -1,0 +1,163 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Social Network</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/style.css' %}" />
+    <script defer src="{% static 'js/index.js' %}"></script>
+    <style>
+      :root {
+        --color___background: #f6f4f3;
+        --color__gray: #ccc;
+      }
+
+      * {
+        font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        background-color: var(--color__background);
+      }
+
+      .container {
+        margin: 0 auto;
+        padding: 1rem;
+        max-width: 40rem;
+      }
+
+      .button {
+        display: inline-block;
+        padding: 0.5rem 1rem;
+        background-color: var(--color__gray);
+        border: 0;
+        cursor: pointer;
+        text-decoration: none;
+      }
+
+      .button:hover {
+        filter: brightness(90%);
+      }
+
+      .message-form__author,
+      .message-form__text {
+        display: block;
+        width: 100%;
+        outline: none;
+        padding: 0.5rem;
+        resize: none;
+        border: 1px solid var(--color__gray);
+        box-sizing: border-box;
+      }
+
+      .message-form__submit {
+        display: block;
+        width: 100%;
+        outline: none;
+        padding: 0.5rem;
+        background-color: var(--color__gray);
+        border: none;
+        cursor: pointer;
+        font-weight: bold;
+        margin-bottom: 1rem;
+      }
+
+      .message-form__submit:hover {
+        filter: brightness(90%);
+      }
+
+      .message {
+        border: 1px solid var(--color__gray);
+        border-top: 0;
+        padding: 0.5rem;
+        border-radius: 0.5rem;
+      }
+
+      .message__author {
+        font-size: 1rem;
+      }
+
+      .message__created_at {
+        color: var(--color__gray);
+      }
+
+      .message__footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+    </style>
+  </head>
+  <body
+    data-host="{{ request.get_host }}"
+    data-scheme="{{ request.get_scheme }}"
+  >
+    <div class="container">
+      <header>
+        <h1>Social Network</h1>
+      </header>
+      <main id="main">
+        <section class="message-form">
+          <form>
+            <input
+              type="text"
+              placeholder="Name"
+              id="message-form__author"
+              class="message-form__author"
+              name="author"
+              required
+            />
+            <textarea
+              name="message"
+              id="message-form__text"
+              class="message-form__text"
+              required
+            ></textarea>
+            <input
+              type="submit"
+              class="message-form__submit"
+              id="message-form__submit"
+              value="Send"
+            />
+          </form>
+        </section>
+        <section id="messages">
+          <div id="messages__list"></div>
+          <button class="button" id="messages__previous-page" disabled>
+            Previous
+          </button>
+          <button class="button" id="messages__next-page">Next</button>
+        </section>
+      </main>
+    </div>
+    <script>
+      const myWebSocket = new WebSocket(
+        "ws://{{ request.get_host }}/ws/social-network/"
+      );
+      const inputAuthor = document.querySelector("#message-form__author");
+      const inputSubmit = document.querySelector("#message-form__submit");
+      const inputText = document.querySelector("#message-form__text");
+
+      myWebSocket.addEventListener("message", (event) => {
+        const data = JSON.parse(event.data);
+        switch (data.action) {
+          case "Add message":
+            document.getElementById("messages__list").innerHTML = data.html;
+            break;
+        }
+      });
+      document
+        .querySelector("#message-form__submit")
+        .addEventListener("click", (event) => {
+          const author = parseString(document.getElementById("author"));
+          const text = parseString(document.getElementById("text"));
+          myWebSocket.send(JSON.stringify({ author: author, text: text }));
+        });
+    </script>
+  </body>
+</html>
